@@ -41,9 +41,14 @@ namespace QueueManager
             await Task.Delay(TimeSpan.FromMilliseconds(-1), cancellationToken);
         }
 
-        private void CreateQueue(string queueName)
+        private async Task CreateQueue(string queueName)
         {
-            this.StateManager.GetOrAddAsync<IReliableConcurrentQueue<string>>(string.Format("fabric:/{0}", queueName));
+            await this.StateManager.GetOrAddAsync<IReliableConcurrentQueue<string>>(string.Format("fabric:/{0}", queueName));
+
+            using (var fabricClient = new FabricClient(FabricClientRole.User))
+            {
+                
+            }
         }
     }
 }
