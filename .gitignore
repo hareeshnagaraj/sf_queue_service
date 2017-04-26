@@ -23,11 +23,6 @@ QuickBuild.log
 # MSBuild's log file
 msbuild.log
 
-# VSMSBuild generated files in CoreXT
-*.sln
-*.projhash*
-*.slnhash*
-
 # Build.exe
 *.err
 *.wrn
@@ -248,14 +243,6 @@ FakesAssemblies/
 # Visual Studio 6 workspace options file
 *.opt
 
-# Everything outside the src directory
-/*
-/*/
-!/
-/.packages
-
 # vim
 *.swp
 
-# Ignore the Visual Studio settings directory
-**/.vs/
