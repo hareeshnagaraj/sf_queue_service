@@ -22,7 +22,7 @@ tags:
 schemes:
 - "http"
 paths:
-  /getoradd/{queueName}:
+  /getOradd/{queueName}:
     post:
       tags:
       - "Management"
@@ -44,7 +44,7 @@ paths:
         name: "body"
         description: "Configuration for reliable concurrent queue"
         schema:
-          $ref: "#/definitions/getoraddQueueMessage"
+          $ref: "#/definitions/GetOrAddQueueMessage"
       responses:
         200:
           description: "
@@ -84,7 +84,7 @@ paths:
       - "Management"
       summary: "Lists all the RCQ currently available"
       description: ""
-      operationId: "list"
+      operationId: "listPrefix"
       consumes:
       - "application/json"
       produces:
@@ -92,15 +92,15 @@ paths:
       parameters:
       - name: "queueNamePrefix"
         in: "path"
-        description: "Optional prefix of RCQ instances to list"
-        required: false
+        description: "Prefix of RCQ instances to list. To list all values, use 'all' as the queueNamePrefix. "
+        required: true
         type: "integer"
         format: "int64"
       responses:
         200:
           description: "The list of queues was successfully returned."
         405:
-          description: "The name prefix is invalid."
+          description: "The name prefix is."
   
 securityDefinitions:
   petstore_auth:
@@ -176,17 +176,7 @@ definitions:
         description: "User Status"
     xml:
       name: "User"
-  Tag:
-    type: "object"
-    properties:
-      id:
-        type: "integer"
-        format: "int64"
-      name:
-        type: "string"
-    xml:
-      name: "Tag"
-  getoraddQueueMessage:
+  GetOrAddQueueMessage:
     type: "object"
     properties:
       dequeueTimeoutInSeconds:
@@ -199,7 +189,7 @@ definitions:
         type: "integer"
         format: "uint64"
     xml:
-      name: "getoraddQueueMessage"
+      name: "GetOrAddQueueMessage"
   Queue:
     type: "object"
     properties:
