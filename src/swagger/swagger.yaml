@@ -1,16 +1,16 @@
 swagger: "2.0"
 info:
-  description: "This is a sample server Petstore server.  You can find out more about     Swagger at [http://swagger.io](http://swagger.io) or on [irc.freenode.net, #swagger](http://swagger.io/irc/).      For this sample, you can use the api key `special-key` to test the authorization     filters."
+  description: "Implementation of service fabric reliable concurrent queue as a service. [Github](https://github.com/hareeshnagaraj/sf_queue_service)"
   version: "1.0.0"
-  title: "SF RCQ as a service"
+  title: "SF Reliable Concurrent Queue as service"
   termsOfService: "http://swagger.io/terms/"
   contact:
     email: "apiteam@swagger.io"
   license:
     name: "Apache 2.0"
     url: "http://www.apache.org/licenses/LICENSE-2.0.html"
-host: "petstore.swagger.io"
-basePath: "/v2"
+host: "localhost"
+basePath: "/666"
 tags:
 - name: "Management"
   description: "Manage all queues"
@@ -22,13 +22,13 @@ tags:
 schemes:
 - "http"
 paths:
-  /create/{queueName}:
+  /getoradd/{queueName}:
     post:
       tags:
       - "Management"
-      summary: "Creates a new reliable concurent queue if it doesn't exist and returns a unique identifier to that queue"
+      summary: "Gets or adds a new reliable concurent queue if it doesn't exist and returns a unique identifier to that queue"
       description: ""
-      operationId: "create"
+      operationId: "getoradd"
       consumes:
       - "application/json"
       produces:
@@ -36,7 +36,7 @@ paths:
       parameters:
       - name: "queueName"
         in: "path"
-        description: "Name of queue to create"
+        description: "Name of queue to getoradd"
         required: true
         type: "integer"
         format: "int64"
@@ -44,14 +44,63 @@ paths:
         name: "body"
         description: "Configuration for reliable concurrent queue"
         schema:
-          $ref: "#/definitions/CreateQueueMessage"
+          $ref: "#/definitions/getoraddQueueMessage"
       responses:
         200:
-          description: "successful operation"
+          description: "
+          If the queue does not exist, returns the fully qualified uri/endpoint of the newly getoraddd queue. If the queue does exist, return the fully qualified uri/endpoint of the existing queue.
+          - "
           schema:
             $ref: '#/definitions/Queue'
         405:
-          description: "Invalid input"
+          description: "Invalid input. Returned if the provided queue name is not embeddable in a URI or the parameters do not match a queue getoraddd with the provided queue name."
+  /delete/{queueName}:
+    get:
+      tags:
+      - "Management"
+      summary: "Deletes the reliable concurent queue corresponding to the provided queue name"
+      description: ""
+      operationId: "delete"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "queueName"
+        in: "path"
+        description: "Name of queue to delete"
+        required: true
+        type: "integer"
+        format: "int64"
+      responses:
+        200:
+          description: "
+          The queue was successfully deleted."
+        405:
+          description: "Invalid input. Returned if the provided queue name does not exist."
+  /list/{queueNamePrefix}:
+    get:
+      tags:
+      - "Management"
+      summary: "Lists all the RCQ currently available"
+      description: ""
+      operationId: "list"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "queueNamePrefix"
+        in: "path"
+        description: "Optional prefix of RCQ instances to list"
+        required: false
+        type: "integer"
+        format: "int64"
+      responses:
+        200:
+          description: "The list of queues was successfully returned."
+        405:
+          description: "The name prefix is invalid."
   
 securityDefinitions:
   petstore_auth:
@@ -137,7 +186,7 @@ definitions:
         type: "string"
     xml:
       name: "Tag"
-  CreateQueueMessage:
+  getoraddQueueMessage:
     type: "object"
     properties:
       dequeueTimeoutInSeconds:
@@ -150,7 +199,7 @@ definitions:
         type: "integer"
         format: "uint64"
     xml:
-      name: "CreateQueueMessage"
+      name: "getoraddQueueMessage"
   Queue:
     type: "object"
     properties:
