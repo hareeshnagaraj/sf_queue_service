@@ -13,16 +13,13 @@ host: "localhost"
 basePath: "/666"
 tags:
 - name: "Management"
-  description: "Manage all queues"
-  externalDocs:
-    description: "Find out more"
-    url: "http://swagger.io"
+  description: "Manage all queues. Address the queue management endpoint corresponding to your queue management service"
 - name: "Queue"
-  description: "Work with a specific queue"
+  description: "Work with a specific queue. Address the endpoint returned by /getoradd/{queuename}"
 schemes:
 - "http"
 paths:
-  /getOradd/{queueName}:
+  /getoradd/{queueName}:
     post:
       tags:
       - "Management"
@@ -55,7 +52,7 @@ paths:
         405:
           description: "Invalid input. Returned if the provided queue name is not embeddable in a URI or the parameters do not match a queue getoraddd with the provided queue name."
   /delete/{queueName}:
-    get:
+    delete:
       tags:
       - "Management"
       summary: "Deletes the reliable concurent queue corresponding to the provided queue name"
@@ -101,6 +98,79 @@ paths:
           description: "The list of queues was successfully returned."
         405:
           description: "The name prefix is."
+  /enqueue/:
+    post:
+      tags:
+      - "Queue"
+      summary: "Enqueues an object into the associated RCQ"
+      description: ""
+      operationId: "enqueue"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "Object to enqueue in a reliable concurrent queue. 
+        \n The 'value' parameter is stored in the queue and returned to any dequeuer - this can be any serializable json object. 
+        \n The deduplication id ensures duplicate message entries are not inserted into the queue when retrying a request - if provided, this value should be unique for each inserted object"
+        schema:
+          $ref: "#/definitions/EnqueueMessage"
+      responses:
+        200:
+          description: "The list of queues was successfully returned."
+        405:
+          description: "The name prefix is."
+  /trydequeue/start/:
+    post:
+      tags:
+      - "Queue"
+      summary: "Tries to dequeue an object from the associated RCQ"
+      description: "---------"
+      operationId: "trydequeue"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "Optional parameters. Visibility timeout represents the maximum duration for this 'trydequeue' operation. Number of items represents the number of items to dequeue "
+        schema:
+          $ref: "#/definitions/TryDequeueMessage"
+      responses:
+        200:
+          description: "Returns an id associated with this try dequeue operation and an array of dequeued json objects. If there are no items in this queue, an empty array would return.
+          
+          - Visibility timeout parameter overrides service-level configuration for this specific dequeue operation"
+          schema:
+            $ref: "#/definitions/TryDequeueResponseMessage"
+        500:
+          description: "Unable to dequeue requested items from reliable concurrent queue"
+  /trydequeue/complete/{dequeueId}:
+    post:
+      tags:
+      - "Queue"
+      summary: "Completes the dequeue operation"
+      description: "The client must call this API after successfully receiving the dequeued values from trydequeue/start/ to ensure the queue state is persisted and the returned items removed."
+      operationId: "completedequeue"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "dequeueId"
+        in: "path"
+        description: "Id of associated dequeue operation"
+        required: true
+        type: "integer"
+        format: "int64"
+      responses:
+        200:
+          description: "Completed the dequeue operation"
+        500:
+          description: "Unable to dequeue requested items from reliable concurrent queue"
   
 securityDefinitions:
   petstore_auth:
@@ -115,81 +185,78 @@ securityDefinitions:
     name: "api_key"
     in: "header"
 definitions:
-  Order:
-    type: "object"
-    properties:
-      id:
-        type: "integer"
-        format: "int64"
-      petId:
-        type: "integer"
-        format: "int64"
-      quantity:
-        type: "integer"
-        format: "int32"
-      shipDate:
-        type: "string"
-        format: "date-time"
-      status:
-        type: "string"
-        description: "Order Status"
-        enum:
-        - "placed"
-        - "approved"
-        - "delivered"
-      complete:
-        type: "boolean"
-        default: false
-    xml:
-      name: "Order"
-  Category:
-    type: "object"
-    properties:
-      id:
-        type: "integer"
-        format: "int64"
-      name:
-        type: "string"
-    xml:
-      name: "Category"
-  User:
-    type: "object"
-    properties:
-      id:
-        type: "integer"
-        format: "int64"
-      username:
-        type: "string"
-      firstName:
-        type: "string"
-      lastName:
-        type: "string"
-      email:
-        type: "string"
-      password:
-        type: "string"
-      phone:
-        type: "string"
-      userStatus:
-        type: "integer"
-        format: "int32"
-        description: "User Status"
-    xml:
-      name: "User"
   GetOrAddQueueMessage:
     type: "object"
     properties:
       dequeueTimeoutInSeconds:
         type: "integer"
         format: "uint64"
+        example: 10
       retentionPeriodInSeconds:
         type: "integer"
         format: "uint64"
+        example : 11
       deduplicationPeriodInSeconds:
         type: "integer"
         format: "uint64"
+        example : 12
+      visbilityTimeout:
+        type: "integer"
+        format: "uint64"
+        example : 13
     xml:
       name: "GetOrAddQueueMessage"
+  EnqueueMessage:
+    type: "object"
+    properties:
+      value:
+        type: "object"
+        format: "json"
+        example : "{
+          hi : s
+        }"
+      deduplicationId:
+        type: "integer"
+        format: "uint64"
+        example: 1234
+    xml:
+      name: "EnqueueMessage"
+  TryDequeueResponseObject:
+    type: "object"
+    xml:
+      name: "TryDequeueResponseObject"
+  TryDequeueMessage:
+    type: "object"
+    properties:
+      visibilityTimeout:
+        type: "integer"
+        format: "uint64"
+    xml:
+      name: "TryDequeueMessage"
+  TryDequeueResponseMessage:
+    type: "object"
+    properties:
+      dequeueId:
+        type: "integer"
+        format: "uint64"
+        example: 23423
+      visibilityTimeout:
+        type: "integer"
+        format: "uint64"
+        example: 1230
+      dequeuedObjects:
+        type: "array"
+        items: 
+          $ref: "#/definitions/TryDequeueResponseObject"
+        example:
+          - user: bob
+            action: cryForHelp
+          - user: alice
+            action : killBob
+          - president: trump
+            public: outcry
+    xml:
+      name: "TryDequeueResponseMessage"
   Queue:
     type: "object"
     properties:
@@ -197,6 +264,3 @@ definitions:
         type: "string"
       queueEndpoint:
         type: "string"
-externalDocs:
-  description: "Find out more about Swagger"
-  url: "http://swagger.io"
