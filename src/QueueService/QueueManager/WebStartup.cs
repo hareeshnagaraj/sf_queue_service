@@ -15,7 +15,10 @@ namespace QueueManager
     {
         public WebStartup(IHostingEnvironment env)
         {
-            Configuration = new ConfigurationBuilder().Build();
+            Configuration = new ConfigurationBuilder()
+                .SetBasePath(env.ContentRootPath)
+                .AddEnvironmentVariables()
+                .Build();
         }
         
         public IConfigurationRoot Configuration { get; }
