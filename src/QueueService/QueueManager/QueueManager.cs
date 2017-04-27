@@ -44,7 +44,7 @@ namespace QueueManager
             return new ServiceReplicaListener[]
             {
                 new ServiceReplicaListener(serviceContext =>
-                    new KestrelCommunicationListener(serviceContext, (url, listener) =>
+                    new KestrelCommunicationListener(serviceContext, "ServiceEndpoint", (url, listener) =>
                     {
                         return new WebHostBuilder()
                             .UseKestrel()
