@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 using Microsoft.ServiceFabric.Data.Collections;
 using Microsoft.ServiceFabric.Services.Communication.Runtime;
 using Microsoft.ServiceFabric.Services.Runtime;
+using Microsoft.ServiceFabric.Data;
+using System.Collections.Concurrent;
 
 namespace QueueManager
 {
-    using System.Diagnostics;
-
     /// <summary>
     /// An instance of this class is created for each service replica by the Service Fabric runtime.
     /// </summary>
@@ -20,12 +20,20 @@ namespace QueueManager
 
         private readonly string serviceUrl;
 
+        private readonly string fullUrl;
+
+        private ConcurrentDictionary<Guid, ITransaction> txnDictionary; 
+
         public QueueManager(StatefulServiceContext context)
             : base(context)
         {
-            Debugger.Launch();
-            var temp = context.CodePackageActivationContext.GetEndpoint("ServiceEndpoint");
-            Console.WriteLine(temp);
+            this.fullUrl = string.Format(
+                "http://{0}:{1}{2}",
+                context.NodeContext.IPAddressOrFQDN,
+                context.CodePackageActivationContext.GetEndpoint("ServiceEndpoint").Port,
+                context.ServiceName.AbsolutePath);
+
+            ServiceEventSource.Current.Message(this.fullUrl);
         }
 
         /// <summary>
@@ -50,10 +58,10 @@ namespace QueueManager
             await Task.Delay(TimeSpan.FromMilliseconds(-1), cancellationToken);
         }
 
-        private async Task GetOrCreateQueue(string queueName)
+        private async Task<string> GetOrCreateQueue(string queueName)
         {
-            var ret = await this.StateManager.GetOrAddAsync<IReliableConcurrentQueue<string>>(new Uri(string.Format(QueueNameFormat, queueName)));
-
+            await this.StateManager.GetOrAddAsync<IReliableConcurrentQueue<string>>(new Uri(string.Format(QueueNameFormat, queueName)));
+            return this.fullUrl + "/" + queueName;
         }
 
         private async Task DeleteQueue(string queueName)
@@ -66,6 +74,91 @@ namespace QueueManager
             }
 
             await this.StateManager.RemoveAsync(new Uri(string.Format(QueueNameFormat, queueName)));
+        }
+
+        private async Task Enqueue(string value, string queueName)
+        {
+            var ret = await this.StateManager.TryGetAsync<IReliableConcurrentQueue<string>>(new Uri(string.Format(QueueNameFormat, queueName)));
+
+            if (!ret.HasValue)
+            {
+                throw new FabricException(string.Format("Queue with name {0} not found", queueName));
+            }
+
+            using (var tx = this.StateManager.CreateTransaction())
+            {
+                await ret.Value.EnqueueAsync(tx, value).ConfigureAwait(false);
+                await tx.CommitAsync().ConfigureAwait(false);
+            }
+        }
+
+        private async Task<Tuple<Guid, string>> TryDequeueAsync(string queueName, int visibilityTimeout)
+        {
+            var ret = await this.StateManager.TryGetAsync<IReliableConcurrentQueue<string>>(new Uri(string.Format(QueueNameFormat, queueName)));
+
+            if (!ret.HasValue)
+            {
+                throw new FabricException(string.Format("Queue with name {0} was not found", queueName));
+            }
+
+            var tx = this.StateManager.CreateTransaction();
+            ConditionalValue<string> dequeuedValue = await ret.Value.TryDequeueAsync(tx).ConfigureAwait(false);
+
+            if (dequeuedValue.HasValue)
+            {
+                var guid = Guid.NewGuid();
+
+                var added = this.txnDictionary.TryAdd(guid, tx);
+                if (added)
+                {
+                    var t = this.StartVisibilityTimer(guid, visibilityTimeout);
+                    return new Tuple<Guid, string>(guid, dequeuedValue.Value);
+                }
+                else
+                {
+                    throw new InvalidOperationException("Operation failed as the token could not be added. Retry dequeue");
+                }
+            }
+            else
+            {
+                return new Tuple<Guid, string>(Guid.Empty, string.Empty);
+            }
+        }
+
+        private async Task CompleteDequeueAsync(Guid token)
+        {
+            if (token == Guid.Empty)
+            {
+                // Nothing to do
+                return;
+            }
+
+            ITransaction txn;
+            var removed = this.txnDictionary.TryRemove(token, out txn);
+
+            if (removed)
+            {
+                await txn.CommitAsync().ConfigureAwait(false);
+            }
+            else
+            {
+                throw new InvalidOperationException(
+                    string.Format(
+                        "Complete could not be completed as the token {0} could not be found. The dequeue did not complete succesfully.",
+                        token));
+            }
+        }
+
+        private async Task StartVisibilityTimer(Guid token, int visibilityTime)
+        {
+            await Task.Delay(visibilityTime);
+
+            ITransaction temp;
+
+            // When the timer expires, remove the token from the dictionary. 
+            // If the remove was unsuccesful, then Complete was already called for this token, ignore the remove
+            // If it was succesfully removed, then the Complete call would fail to find the token.
+            this.txnDictionary.TryRemove(token, out temp);
         }
     }
 }

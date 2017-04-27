@@ -246,3 +246,4 @@ FakesAssemblies/
 # vim
 *.swp
 
+*.vs
