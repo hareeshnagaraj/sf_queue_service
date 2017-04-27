@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.ServiceFabric.Services.Communication.AspNetCore;
 using Microsoft.ServiceFabric.Services.Communication.Runtime;
 using Microsoft.ServiceFabric.Services.Runtime;
+using Microsoft.ServiceFabric.Data;
 
 namespace QueueManager
 {
@@ -45,7 +46,17 @@ namespace QueueManager
                 new ServiceReplicaListener(serviceContext =>
                     new KestrelCommunicationListener(serviceContext, (url, listener) =>
                     {
-                        return new WebHostBuilder().Build();
+                        return new WebHostBuilder()
+                            .UseKestrel()
+                            .ConfigureServices(
+                                services => services
+                                    .AddSingleton<StatefulServiceContext>(serviceContext)
+                                    .AddSingleton<IReliableStateManager>(this.StateManager))
+                            //.UseContentRoot(Directory.GetCurrentDirectory())
+                            .UseStartup<WebStartup>()
+                            .UseServiceFabricIntegration(listener, ServiceFabricIntegrationOptions.UseUniqueServiceUrl)
+                            .UseUrls(url)
+                            .Build();
                     }))
             };
         }
