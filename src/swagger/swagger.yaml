@@ -239,6 +239,8 @@ definitions:
         example: 1230
       dequeuedObjects:
         type: "array"
+        items: 
+          type : "string"
         example:
           - "object1"
           - "object2"
