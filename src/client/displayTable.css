@@ -1,0 +1,160 @@
+body {
+  margin: 0;
+  padding: 0 10px;
+}
+
+h1, h2 {
+  text-align: center;
+  font: 700 1.6em Helvetica, Arial, sans-serif;
+  padding: 20px 0;
+}
+
+p {
+  margin: 0;
+  padding: 0;
+}
+
+.task {
+  display: block;
+  max-width: 500px;
+  margin: 0 auto;
+  font: 1em Helvetica, Arial, sans-serif;
+  padding: 10px;
+  text-align: justify;
+  border-top: 1px solid silver;
+  border-bottom: 1px solid silver;
+}
+
+.main {
+  width: 100%;
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.traffic_light {
+  margin: 0 20px;
+  display: flex;
+  flex-flow: row wrap;
+}
+
+.traffic_light__lable {
+  margin: 0 auto;
+  width: 150px;
+  display: block;
+  text-align: center;
+  font: 700 1.5em Helvetica, sans-serif;
+}
+
+.traffic_light__btns {
+  display: flex;
+  flex-flow: column nowrap;
+}
+
+.traffic_light__btn {
+  position: relative;
+  margin: 0 auto 10px auto;
+  width: 150px;
+  height: 70px;
+  text-align: center;
+  font: 700 24px Helvetica, sans-serif;
+}
+
+.traffic_light__btn:after {
+  position: absolute;
+  display: block;
+  content: '';
+  top: 30px;
+  left: 43px;
+  width: 64px;
+  height: 32px;
+  background: #999;
+  border-radius: 30px;
+  cursor: pointer;
+  z-index: 1;
+}
+
+.traffic_light__btn:before {
+  position: absolute;
+  display: block;
+  content: '';
+  top: 33px;
+  right: 47px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  transition: all .25s;
+  background: lightgray;
+  cursor: pointer;
+  z-index: 2;
+}
+
+.traffic_light__btn--on:before {
+  transform: translateX(-30px);
+  background: lightgreen;
+}
+
+.traffic_light__lighter {
+  margin: 20px auto;
+  padding: 20px 0;
+  width: 140px;
+  height: 300px;
+  border: 8px solid #121213;
+  border-radius: 60px;
+  background: #333;
+  background: linear-gradient(-70deg, #3a3734 0%, #3a3734 50%, #605d5c 0%, #605d5c 100%);
+  display: flex;
+  flex-flow: column nowrap;
+  justify-content: space-around;
+  align-items: center;
+  transition: all .15s;
+}
+
+.traffic_light__lighter--hor {
+  padding: 0 20px;
+  height: 140px;
+  width: 300px;
+  flex-flow: row nowrap;
+  background: linear-gradient(-15deg, #3a3734 0%, #3a3734 55%, #605d5c 0%, #605d5c 100%);
+}
+
+
+.traffic_light__light {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  border: 2px solid #121213;
+  box-shadow: 0 -2px 0 2px #929191, inset 1px 1px 10px rgba(255, 255, 255, 0.8);
+  /*    box-shadow: 0 -2px 0 2px #929191; */
+  transition: all .25s;
+  background: #888;
+  cursor: pointer;
+}
+
+.traffic_light__lighter--on .traffic_light__light--red {
+  background: hsl(4, 69%, 80%);
+}
+
+.traffic_light__lighter--on .traffic_light__light--red.active {
+  background: #d20d08;
+  box-shadow: 0 -2px 0 2px #929191, inset 0 0 10px 6px rgba(252, 33, 30, 0.9), 0 0 20px rgba(252, 33, 30, 0.6);
+}
+
+.traffic_light__lighter--on .traffic_light__light--yellow {
+  background: hsl(46, 91%, 85%);
+}
+
+.traffic_light__lighter--on .traffic_light__light--yellow.active {
+  background: #d2d007;
+  box-shadow: 0 -2px 0 2px #929191, inset 0 0 10px 6px rgba(247, 238, 20, 0.9), 0 0 20px rgba(247, 238, 20, 0.7);
+}
+
+.traffic_light__lighter--on .traffic_light__light--green {
+  background: hsl(136, 68%, 80%);
+}
+
+.traffic_light__lighter--on .traffic_light__light--green.active {
+  background: #25c217;
+  box-shadow: 0 -2px 0 2px #929191, inset 0 0 10px 6px rgba(36, 235, 19, 0.8),  0 0 20px rgba(36, 235, 19, 0.7);
+}

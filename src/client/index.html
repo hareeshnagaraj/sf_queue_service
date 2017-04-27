@@ -1,0 +1,39 @@
+﻿<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>RCQ As A Service Demo</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link rel="stylesheet" href="displayTable.css" />    
+</head>
+<body ng-app="RcqDemoApp" ng-controller="MainCtrl">
+    <div class="container-fluid">
+        <input type="button" value="Start Traffic" ng-click="StartTraffic()" />
+        <input type="button" value="Stop Traffic" ng-click="StopTraffic()" />
+
+        <div class="row">
+            <div class="container-fluid">
+                Cars in Lane 1: {{ intersection.lane1.length }}
+            </div>
+            <br/>
+            <div class="container-fluid">
+                Cars in Lane 2: {{ intersection.lane2.length }}
+            </div>
+            <br/>
+            <div class="container-fluid">
+                Lane 1 Light Status:
+                <p id="Light">{{ lane1Light }}</p>
+            </div>
+            <div class="container-fluid">
+                Lane 2 Light Status:
+                <p id="Light">{{ lane2Light }}</p>
+            </div>
+        </div>
+    </div>
+    <script type="text/javascript" src="./js/angular.min.js"></script>
+    <script type="text/javascript" src="./js/entities.js" defer></script>
+    <script type="text/javascript" src="./js/jquery-2.1.4.min.js" defer></script>
+    <script type="text/javascript" src="./js/bootstrap.min.js" defer></script>
+    <script type="text/javascript" src="./js/controllers.js"></script>
+</body>
+</html>
