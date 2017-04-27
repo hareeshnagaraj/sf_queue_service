@@ -10,7 +10,10 @@ using Microsoft.ServiceFabric.Services.Communication.AspNetCore;
 using Microsoft.ServiceFabric.Services.Communication.Runtime;
 using Microsoft.ServiceFabric.Services.Runtime;
 using Microsoft.ServiceFabric.Data;
+<<<<<<< HEAD
 using System.Collections.Concurrent;
+=======
+>>>>>>> origin/sangarg
 
 namespace QueueManager
 {
