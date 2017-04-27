@@ -136,14 +136,14 @@ paths:
       parameters:
       - in: "body"
         name: "body"
-        description: "Optional parameters. Visibility timeout represents the maximum duration for this 'trydequeue' operation. Number of items represents the number of items to dequeue "
+        description: "Optional parameters. Dequeue timeout represents the maximum duration for this 'trydequeue' operation. Number of items represents the number of items to dequeue "
         schema:
           $ref: "#/definitions/TryDequeueMessage"
       responses:
         200:
           description: "Returns an id associated with this try dequeue operation and an array of dequeued strings. If there are no items in this queue, an empty array would return.
           
-          - Visibility timeout parameter overrides service-level configuration for this specific dequeue operation"
+          - Dequeue timeout parameter overrides service-level configuration for this specific dequeue operation"
           schema:
             $ref: "#/definitions/TryDequeueResponseMessage"
         500:
