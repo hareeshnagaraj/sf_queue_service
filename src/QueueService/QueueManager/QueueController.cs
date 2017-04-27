@@ -7,10 +7,10 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace QueueManager.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("queuemanager/[controller]")]
     class QueueController : Controller
     {
-        [HttpPost("{name}")]
+        [HttpPost("getorcreatequeue/{name}")]
         public string GetOrCreateQueue(string name)
         {
             return "test";
