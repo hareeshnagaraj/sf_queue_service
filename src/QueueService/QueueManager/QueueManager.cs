@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Fabric;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.ServiceFabric.Data.Collections;
@@ -10,14 +9,24 @@ using Microsoft.ServiceFabric.Services.Runtime;
 
 namespace QueueManager
 {
+    using System.Diagnostics;
+
     /// <summary>
     /// An instance of this class is created for each service replica by the Service Fabric runtime.
     /// </summary>
     internal sealed class QueueManager : StatefulService
     {
+        private const string QueueNameFormat = "fabric:/{0}";
+
+        private readonly string serviceUrl;
+
         public QueueManager(StatefulServiceContext context)
             : base(context)
-        { }
+        {
+            Debugger.Launch();
+            var temp = context.CodePackageActivationContext.GetEndpoint("ServiceEndpoint");
+            Console.WriteLine(temp);
+        }
 
         /// <summary>
         /// Optional override to create listeners (e.g., HTTP, Service Remoting, WCF, etc.) for this service replica to handle client or user requests.
@@ -41,14 +50,22 @@ namespace QueueManager
             await Task.Delay(TimeSpan.FromMilliseconds(-1), cancellationToken);
         }
 
-        private async Task CreateQueue(string queueName)
+        private async Task GetOrCreateQueue(string queueName)
         {
-            await this.StateManager.GetOrAddAsync<IReliableConcurrentQueue<string>>(string.Format("fabric:/{0}", queueName));
+            var ret = await this.StateManager.GetOrAddAsync<IReliableConcurrentQueue<string>>(new Uri(string.Format(QueueNameFormat, queueName)));
 
-            using (var fabricClient = new FabricClient(FabricClientRole.User))
+        }
+
+        private async Task DeleteQueue(string queueName)
+        {
+            var ret = await this.StateManager.TryGetAsync<IReliableConcurrentQueue<string>>(new Uri(string.Format(QueueNameFormat, queueName)));
+
+            if (!ret.HasValue)
             {
-                
+                throw new FabricException(string.Format("Queue with name {0} not found", queueName));
             }
+
+            await this.StateManager.RemoveAsync(new Uri(string.Format(QueueNameFormat, queueName)));
         }
     }
 }
