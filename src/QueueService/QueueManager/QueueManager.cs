@@ -4,6 +4,9 @@ using System.Fabric;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.ServiceFabric.Data.Collections;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.ServiceFabric.Services.Communication.AspNetCore;
 using Microsoft.ServiceFabric.Services.Communication.Runtime;
 using Microsoft.ServiceFabric.Services.Runtime;
 
@@ -37,7 +40,14 @@ namespace QueueManager
         /// <returns>A collection of listeners.</returns>
         protected override IEnumerable<ServiceReplicaListener> CreateServiceReplicaListeners()
         {
-            return new ServiceReplicaListener[0];
+            return new ServiceReplicaListener[]
+            {
+                new ServiceReplicaListener(serviceContext =>
+                    new KestrelCommunicationListener(serviceContext, (url, listener) =>
+                    {
+                        return new WebHostBuilder().Build();
+                    }))
+            };
         }
 
         /// <summary>
