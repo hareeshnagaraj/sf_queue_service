@@ -15,17 +15,17 @@ tags:
 - name: "Management"
   description: "Manage all queues. Address the queue management endpoint corresponding to your queue management service"
 - name: "Queue"
-  description: "Work with a specific queue. Address the endpoint returned by /getoradd/{queuename}"
+  description: "Work with a specific queue. Address the endpoint returned by /getorcreate/{queuename}"
 schemes:
 - "http"
 paths:
-  /getoradd/{queueName}:
+  /getorcreate/{queueName}:
     post:
       tags:
       - "Management"
       summary: "Gets or adds a new reliable concurent queue if it doesn't exist and returns a unique identifier to that queue"
       description: ""
-      operationId: "getoradd"
+      operationId: "getorcreate"
       consumes:
       - "application/json"
       produces:
@@ -33,15 +33,14 @@ paths:
       parameters:
       - name: "queueName"
         in: "path"
-        description: "Name of queue to getoradd"
+        description: "Name of queue to getorcreate"
         required: true
-        type: "integer"
-        format: "int64"
+        type: "string"
       - in: "body"
         name: "body"
         description: "Configuration for reliable concurrent queue"
         schema:
-          $ref: "#/definitions/GetOrAddQueueMessage"
+          $ref: "#/definitions/GetOrCreateQueueMessage"
       responses:
         200:
           description: "
@@ -89,7 +88,8 @@ paths:
       parameters:
       - name: "queueNamePrefix"
         in: "path"
-        description: "Prefix of RCQ instances to list. To list all values, use 'all' as the queueNamePrefix. "
+        description: "Prefix of RCQ instances to list. 
+        \n To list all queue names, use 'all' as the queueNamePrefix. "
         required: true
         type: "integer"
         format: "int64"
@@ -113,15 +113,15 @@ paths:
       - in: "body"
         name: "body"
         description: "Object to enqueue in a reliable concurrent queue. 
-        \n The 'value' parameter is stored in the queue and returned to any dequeuer - this can be any serializable json object. 
+        \n The 'value' parameter is stored in the queue and returned to any dequeuer - this can be any string. 
         \n The deduplication id ensures duplicate message entries are not inserted into the queue when retrying a request - if provided, this value should be unique for each inserted object"
         schema:
           $ref: "#/definitions/EnqueueMessage"
       responses:
         200:
-          description: "The list of queues was successfully returned."
+          description: "The string was successfully enqueued."
         405:
-          description: "The name prefix is."
+          description: "The supplied string was invalid"
   /trydequeue/start/:
     post:
       tags:
@@ -141,7 +141,7 @@ paths:
           $ref: "#/definitions/TryDequeueMessage"
       responses:
         200:
-          description: "Returns an id associated with this try dequeue operation and an array of dequeued json objects. If there are no items in this queue, an empty array would return.
+          description: "Returns an id associated with this try dequeue operation and an array of dequeued strings. If there are no items in this queue, an empty array would return.
           
           - Visibility timeout parameter overrides service-level configuration for this specific dequeue operation"
           schema:
@@ -185,7 +185,7 @@ securityDefinitions:
     name: "api_key"
     in: "header"
 definitions:
-  GetOrAddQueueMessage:
+  GetOrCreateQueueMessage:
     type: "object"
     properties:
       dequeueTimeoutInSeconds:
@@ -205,30 +205,23 @@ definitions:
         format: "uint64"
         example : 13
     xml:
-      name: "GetOrAddQueueMessage"
+      name: "GetOrCreateQueueMessage"
   EnqueueMessage:
     type: "object"
     properties:
       value:
-        type: "object"
-        format: "json"
-        example : "{
-          hi : s
-        }"
+        type: "string"
+        example : "object1"
       deduplicationId:
         type: "integer"
         format: "uint64"
         example: 1234
     xml:
       name: "EnqueueMessage"
-  TryDequeueResponseObject:
-    type: "object"
-    xml:
-      name: "TryDequeueResponseObject"
   TryDequeueMessage:
     type: "object"
     properties:
-      visibilityTimeout:
+      dequeueTimeout:
         type: "integer"
         format: "uint64"
     xml:
@@ -240,21 +233,16 @@ definitions:
         type: "integer"
         format: "uint64"
         example: 23423
-      visibilityTimeout:
+      dequeueTimeout:
         type: "integer"
         format: "uint64"
         example: 1230
       dequeuedObjects:
         type: "array"
-        items: 
-          $ref: "#/definitions/TryDequeueResponseObject"
         example:
-          - user: bob
-            action: cryForHelp
-          - user: alice
-            action : killBob
-          - president: trump
-            public: outcry
+          - "object1"
+          - "object2"
+          - "object3"
     xml:
       name: "TryDequeueResponseMessage"
   Queue:
