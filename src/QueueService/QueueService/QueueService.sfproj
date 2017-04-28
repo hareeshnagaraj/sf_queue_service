@@ -39,4 +39,8 @@
   </PropertyGroup>
   <Import Project="$(ApplicationProjectTargetsPath)" Condition="Exists('$(ApplicationProjectTargetsPath)')" />
   <Import Project="..\packages\Microsoft.VisualStudio.Azure.Fabric.MSBuild.1.5.0\build\Microsoft.VisualStudio.Azure.Fabric.Application.targets" Condition="Exists('..\packages\Microsoft.VisualStudio.Azure.Fabric.MSBuild.1.5.0\build\Microsoft.VisualStudio.Azure.Fabric.Application.targets')" />
+   <Target Name="AfterBuild">
+    <Copy SourceFiles="..\packages\Libuv.1.9.1\runtimes\win7-x64\native\libuv.dll" DestinationFiles="pkg\Debug\QueueManagerPkg\Code\libuv.dll"/>
+    <Copy SourceFiles="..\packages\Libuv.1.9.1\runtimes\win7-x64\native\libuv.dll" DestinationFiles="pkg\Release\QueueManagerPkg\Code\libuv.dll"/>
+  </Target>
 </Project>

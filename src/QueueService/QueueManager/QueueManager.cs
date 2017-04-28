@@ -48,8 +48,10 @@ namespace QueueManager
         /// <returns>A collection of listeners.</returns>
         protected override IEnumerable<ServiceReplicaListener> CreateServiceReplicaListeners()
         {
-            return new ServiceReplicaListener[]
+            try
             {
+                var ret = new ServiceReplicaListener[]
+                {
                 new ServiceReplicaListener(serviceContext =>
                     new KestrelCommunicationListener(serviceContext, "ServiceEndpoint", (url, listener) =>
                     {
@@ -59,13 +61,21 @@ namespace QueueManager
                                 services => services
                                     .AddSingleton<StatefulServiceContext>(serviceContext)
                                     .AddSingleton<IReliableStateManager>(this.StateManager))
-                            //.UseContentRoot(Directory.GetCurrentDirectory())
+                            .UseContentRoot(System.IO.Directory.GetCurrentDirectory())
                             .UseStartup<WebStartup>()
                             .UseServiceFabricIntegration(listener, ServiceFabricIntegrationOptions.UseUniqueServiceUrl)
                             .UseUrls(url)
                             .Build();
                     }))
-            };
+                };
+
+                return ret;
+            }
+            catch(Exception e)
+            {
+                ServiceEventSource.Current.Message(e.ToString());
+                throw;
+            }
         }
 
         /// <summary>

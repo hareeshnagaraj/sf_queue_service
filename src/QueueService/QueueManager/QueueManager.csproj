@@ -359,16 +359,9 @@
       <SubType>Designer</SubType>
     </None>
   </ItemGroup>
-  <ItemGroup>
-    <Analyzer Include="$(NugetMachineInstallRoot)\Microsoft.CodeAnalysis.Analyzers.1.1.0\analyzers\dotnet\cs\Microsoft.CodeAnalysis.Analyzers.dll" />
-    <Analyzer Include="$(NugetMachineInstallRoot)\Microsoft.CodeAnalysis.Analyzers.1.1.0\analyzers\dotnet\cs\Microsoft.CodeAnalysis.CSharp.Analyzers.dll" />
-  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
   <Target Name="AfterBuild">
-  </Target>
-  -->
+    <Copy SourceFiles="..\packages\Libuv.1.9.1\runtimes\win7-x64\native\libuv.dll" DestinationFiles="bin\x64\Debug\libuv.dll"/>
+    <Copy SourceFiles="..\packages\Libuv.1.9.1\runtimes\win7-x64\native\libuv.dll" DestinationFiles="bin\x64\Release\libuv.dll"/>
+   </Target>
 </Project>
